@@ -771,7 +771,7 @@ function showEnding() {
 
 function render() {
   const dayIdx = Math.min(2, Math.floor(state.turn / 3));
-  const timeIdx = state.turn % 3;
+  const timeIdx = state.turn >= 9 ? 2 : state.turn % 3;
   const rem = Math.max(0, 9 - state.turn);
   document.getElementById("turn-display").textContent = `${DAYS[dayIdx]}・${TIMES[timeIdx]} (残り${rem}ターン)`;
 
