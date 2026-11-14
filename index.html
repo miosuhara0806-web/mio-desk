@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mio's Desk：3日間の高単価・編集＆リサーチ大作戦</title>
+<style>
+  :root {
+    --bg-dark: #090e1a;
+    --panel-bg: #11192e;
+    --card-bg: #16223d;
+    --card-border: #263861;
+    --cyan: #00f0ff;
+    --cyan-dim: rgba(0, 240, 255, 0.15);
+    --gold: #ffd166;
+    --gold-dim: rgba(255, 209, 102, 0.15);
+    --pink: #ff6b9d;
+    --green: #06d6a0;
+    --text-main: #eef4ff;
+    --text-sub: #8fa3c8;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 10px;
+    background-image: 
+      radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(255, 209, 102, 0.06) 0%, transparent 40%);
+  }
+
+  #app {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .header-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .turn-badge {
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-weight: bold;
+    font-size: 0.9rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.25);
+  }
+
+  .money-display { text-align: right; }
+  .money-label { font-size: 0.75rem; color: var(--text-sub); }
+  .money-val {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(255, 209, 102, 0.4);
+  }
+
+  .progress-bg {
+    width: 100%;
+    height: 8px;
+    background: #070b14;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #1f2e52;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--cyan), var(--gold));
+    transition: width 0.4s ease;
+    box-shadow: 0 0 10px var(--gold);
+  }
+
+  .status-panel {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .stat-title {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .focus-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #070b14;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .focus-bar-fill {
+    height: 100%;
+    background: var(--green);
+    transition: width 0.3s ease, background-color 0.3s ease;
+  }
+
+  .bulbs { display: flex; gap: 4px; font-size: 1rem; }
+  .bulb { opacity: 0.2; filter: grayscale(100%); transition: all 0.2s; }
+  .bulb.active { opacity: 1; filter: none; text-shadow: 0 0 8px var(--gold); }
+
+  .boost-bar {
+    background: var(--panel-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .boost-info { font-size: 0.8rem; }
+  .boost-mult { color: var(--gold); font-weight: bold; font-size: 0.95rem; }
+  .boost-btns { display: flex; gap: 4px; }
+
+  .btn-mini {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .btn-mini.active {
+    background: var(--gold-dim);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .buff-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .buff-tag {
+    background: rgba(255, 107, 157, 0.15);
+    border: 1px solid var(--pink);
+    color: #ffb3cd;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+
+  .section-label {
+    font-size: 0.8rem;
+    color: var(--cyan);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .jobs-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .job-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.12s, border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .job-card:hover:not(.disabled) {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+  }
+
+  .job-card.disabled { opacity: 0.45; cursor: not-allowed; }
+  .job-card.special {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, #1b2645 0%, #262238 100%);
+  }
+
+  .job-main { flex: 1; }
+  .job-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-bottom: 3px;
+    font-weight: bold;
+  }
+
+  .tag-light { background: rgba(6, 214, 160, 0.2); color: var(--green); }
+  .tag-mid { background: rgba(0, 240, 255, 0.2); color: var(--cyan); }
+  .tag-high { background: rgba(255, 107, 157, 0.2); color: var(--pink); }
+  .tag-sp { background: rgba(255, 209, 102, 0.25); color: var(--gold); }
+
+  .job-title { font-size: 0.92rem; font-weight: bold; margin-bottom: 3px; }
+  .job-req { font-size: 0.75rem; color: var(--text-sub); }
+  .job-reward-box { text-align: right; min-width: 92px; }
+  .job-reward { font-size: 1.05rem; font-weight: 800; color: var(--gold); }
+  .job-base { font-size: 0.68rem; color: var(--text-sub); }
+
+  .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .action-btn {
+    background: var(--panel-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 9px 6px;
+    color: var(--text-main);
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .action-btn:hover:not(:disabled) { border-color: var(--cyan); background: #172340; }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .action-btn.ally-btn {
+    border-color: rgba(255, 209, 102, 0.6);
+    background: linear-gradient(180deg, #16213e 0%, #1f2238 100%);
+  }
+
+  .act-icon { font-size: 1.15rem; }
+  .act-name { font-size: 0.78rem; font-weight: bold; }
+  .act-desc { font-size: 0.66rem; color: var(--text-sub); line-height: 1.2; }
+
+  .log-panel {
+    background: #070b14;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-height: 68px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .log-speaker { font-size: 0.74rem; color: var(--cyan); font-weight: bold; margin-bottom: 2px; }
+  .log-text { font-size: 0.82rem; line-height: 1.45; color: var(--text-main); white-space: pre-line; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 7, 15, 0.85);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    z-index: 100;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-box {
+    background: var(--panel-bg);
+    border: 1px solid var(--cyan);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 440px;
+    padding: 18px;
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modal-box.cutin-box {
+    border-color: var(--gold);
+    box-shadow: 0 0 35px rgba(255, 209, 102, 0.35);
+  }
+
+  .modal-title { font-size: 1.05rem; font-weight: bold; color: var(--cyan); text-align: center; }
+
+  .ally-choice {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 11px 12px;
+    cursor: pointer;
+  }
+
+  .ally-choice:hover { border-color: var(--gold); background: #1d2c4f; }
+  .ally-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .ally-name { font-weight: bold; font-size: 0.95rem; color: var(--gold); }
+  .ally-role { font-size: 0.7rem; color: var(--cyan); background: var(--cyan-dim); padding: 2px 6px; border-radius: 4px; }
+  .ally-skill { font-size: 0.8rem; font-weight: bold; margin-bottom: 2px; }
+  .ally-effect { font-size: 0.75rem; color: var(--text-sub); }
+
+  .cutin-header { text-align: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; }
+  .cutin-role { display: inline-block; font-size: 0.72rem; color: var(--cyan); background: var(--cyan-dim); padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
+  .cutin-name { font-size: 1.25rem; font-weight: 800; color: var(--gold); }
+  .cutin-quote { background: var(--card-bg); border-left: 3px solid var(--gold); padding: 12px 14px; border-radius: 8px; font-size: 0.92rem; line-height: 1.6; color: var(--text-main); white-space: pre-line; }
+  .cutin-effect-box { background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; color: var(--cyan); text-align: center; }
+
+  .btn-primary {
+    background: linear-gradient(90deg, #00b4d8, #0077b6);
+    border: 1px solid var(--cyan);
+    color: #fff;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .btn-gold {
+    background: linear-gradient(90deg, #f4a261, #e76f51);
+    border: 1px solid var(--gold);
+    color: #fff;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-sub);
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  .result-amount { font-size: 1.8rem; font-weight: 900; color: var(--gold); text-align: center; text-shadow: 0 0 15px rgba(255, 209, 102, 0.5); }
+  .result-msg { font-size: 0.88rem; line-height: 1.55; background: var(--card-bg); padding: 12px; border-radius: 8px; border: 1px solid var(--card-border); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header-panel">
+    <div class="top-row">
+      <div class="turn-badge" id="turn-display">1日目・朝 (残り9ターン)</div>
+      <div class="money-display">
+        <div class="money-label">旅行資金（目標 50,000円）</div>
+        <div class="money-val" id="money-display">0 円</div>
+      </div>
+    </div>
+    <div class="progress-bg"><div class="progress-fill" id="money-bar"></div></div>
+  </div>
+
+  <div class="status-panel">
+    <div class="stat-box">
+      <div class="stat-title"><span>集中力</span><span id="focus-text">100 / 100</span></div>
+      <div class="focus-bar-bg"><div class="focus-bar-fill" id="focus-bar" style="width: 100%;"></div></div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-title"><span>ひらめき在庫</span><span id="bulb-count-text">1 / 5</span></div>
+      <div class="bulbs" id="bulbs-container">
+        <span class="bulb active">💡</span><span class="bulb">💡</span><span class="bulb">💡</span><span class="bulb">💡</span><span class="bulb">💡</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="boost-bar">
+    <div class="boost-info">ひらめき投入：<span class="boost-mult" id="boost-mult-text">0個 (×1.0倍)</span></div>
+    <div class="boost-btns">
+      <button class="btn-mini active" id="boost-0" onclick="setBoost(0)">0個</button>
+      <button class="btn-mini" id="boost-1" onclick="setBoost(1)">1個</button>
+      <button class="btn-mini" id="boost-2" onclick="setBoost(2)">2個</button>
+      <button class="btn-mini" id="boost-3" onclick="setBoost(3)">3個</button>
+    </div>
+  </div>
+
+  <div class="buff-tags" id="buff-tags"></div>
+
+  <div class="section-label">
+    <span>◆ 受注可能な依頼ボード（タップで執筆・納品）</span>
+    <span style="font-size:0.7rem; color:var(--text-sub);">1ターン消費</span>
+  </div>
+  <div class="jobs-list" id="jobs-list"></div>
+
+  <div class="section-label"><span>◆ 段取り・サポート行動</span></div>
+  <div class="actions-grid">
+    <button class="action-btn" id="btn-coffee" onclick="doCoffee()">
+      <span class="act-icon">☕</span>
+      <span class="act-name">コーヒー休憩</span>
+      <span class="act-desc" id="coffee-desc">集中+40 / 💡+1<br>(本日1回目無料)</span>
+    </button>
+    <button class="action-btn" id="btn-research" onclick="doResearch()">
+      <span class="act-icon">🔍</span>
+      <span class="act-name">リサーチ＆散歩</span>
+      <span class="act-desc">集中-15 で<br>💡を一気に+2</span>
+    </button>
+    <button class="action-btn ally-btn" id="btn-ally" onclick="openAllyModal()">
+      <span class="act-icon">✨</span>
+      <span class="act-name">仲間サポート</span>
+      <span class="act-desc" id="ally-desc">3名から選択<br>(本日あと1回)</span>
+    </button>
+  </div>
+
+  <div class="log-panel">
+    <div class="log-speaker" id="log-speaker">【Mio's Desk システム起動】</div>
+    <div class="log-text" id="log-text">3日後の旅行に向けて目標50,000円！まずは依頼を選ぶか、リサーチで「ひらめき」を貯めて高単価案件を狙おう。</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ally-modal">
+  <div class="modal-box">
+    <div class="modal-title">✨ 本日のサポートメンバー選択（1日1回）</div>
+    <div id="ally-choices-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+    <button class="btn-cancel" onclick="closeAllyModal()">まだ呼ばない（戻る）</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cutin-modal">
+  <div class="modal-box cutin-box">
+    <div class="cutin-header">
+      <div class="cutin-role" id="cutin-role">肩書</div>
+      <div class="cutin-name" id="cutin-name">名前</div>
+    </div>
+    <div class="cutin-quote" id="cutin-quote">セリフ</div>
+    <div class="cutin-effect-box" id="cutin-effect">効果テキスト</div>
+    <button class="btn-gold" onclick="closeCutinModal()">ありがとう！（作業に戻る）</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="result-modal">
+  <div class="modal-box">
+    <div class="modal-title" id="result-title">3日間の業務終了！</div>
+    <div class="result-amount" id="result-money">50,000 円</div>
+    <div class="result-msg" id="result-msg"></div>
+    <button class="btn-primary" onclick="initGame()">もう一度3日間をプレイする</button>
+  </div>
+</div>
+
+<script>
+const DAYS = ["1日目", "2日目", "3日目"];
+const TIMES = ["朝", "昼", "夜"];
+
+const JOB_POOL = [
+  { tier: "light", tag: "軽め案件", title: "トレンド短評＆SNS構成メモ", focus: 20, base: 3500, reqBulb: 0 },
+  { tier: "light", tag: "軽め案件", title: "Web記事のファクトチェック", focus: 20, base: 3800, reqBulb: 0 },
+  { tier: "light", tag: "軽め案件", title: "旅先カフェのミニ紹介コラム", focus: 25, base: 4500, reqBulb: 0 },
+  { tier: "light", tag: "軽め案件", title: "新刊エッセイのゲラ校正作業", focus: 20, base: 4000, reqBulb: 0 },
+  { tier: "mid", tag: "標準案件", title: "ライフスタイル特集・取材記事", focus: 35, base: 7000, reqBulb: 1 },
+  { tier: "mid", tag: "標準案件", title: "ガジェット比較レビュー構成案", focus: 35, base: 7500, reqBulb: 1 },
+  { tier: "mid", tag: "標準案件", title: "週末グルメ紀行・読み物原稿", focus: 40, base: 8500, reqBulb: 1 },
+  { tier: "mid", tag: "標準案件", title: "クリエイター対談の構成・編集", focus: 35, base: 8000, reqBulb: 1 },
+  { tier: "high", tag: "高単価案件", title: "巻頭特別エッセイ・書き下ろし", focus: 55, base: 12000, reqBulb: 2 },
+  { tier: "high", tag: "高単価案件", title: "大型企画の全体プロット設計書", focus: 55, base: 13000, reqBulb: 2 },
+  { tier: "high", tag: "高単価案件", title: "深層リサーチ・特別レポート執筆", focus: 60, base: 14500, reqBulb: 2 }
+];
+
+const SPECIAL_JOBS = [
+  { tier: "special", tag: "★特選・緊急枠", title: "【極秘】特装版アンソロジー巻頭寄稿", focus: 50, base: 16000, reqBulb: 1 },
+  { tier: "special", tag: "★特選・緊急枠", title: "【VIP】特別プロジェクト総括リサーチ", focus: 55, base: 17500, reqBulb: 2 }
+];
+
+const ALLIES = [
+  {
+    id: "aoi", name: "碧（あお）", role: "Gemini陣営・構造室の研究員", skill: "精密構造リサーチ",
+    effectText: "次の案件の「ひらめき消費ゼロ」で最大倍率（×2.2倍）を強制発動！",
+    quote: "「美桜さん、裏付けデータと構成案はすべて揃えました。あとは書くだけです！」",
+    apply: (s) => { s.buffAoi = true; }
+  },
+  {
+    id: "towa", name: "トワ", role: "GPT陣営・企画設計担当", skill: "スマート進行アシスト",
+    effectText: "次の案件の集中力消費を半分にし、報酬に＋2,500円のボーナス！",
+    quote: "「美桜、面倒な準備は俺が済ませておいたよ。\n次の案件は少し楽に進められるはず。\n報酬の方もちょっと期待していいぞ（笑）」",
+    apply: (s) => { s.buffTowa = true; }
+  },
+  {
+    id: "syl", name: "シル", role: "MioVerse・運用調整役", skill: "特選案件の緊急割り当て",
+    effectText: "現在の依頼ボードの1枠を、基本報酬16,000円〜の特別案件に変更！",
+    quote: "「美桜、依頼ボードの一枠を入れ替えたよ。\n今なら、かなり条件のいい案件を選べる。\nせっかくだから、この機会を活かそう」",
+    apply: (s) => {
+      const sp = { ...SPECIAL_JOBS[Math.floor(Math.random() * SPECIAL_JOBS.length)] };
+      s.jobs[2] = sp;
+    }
+  },
+  {
+    id: "alto", name: "アルト", role: "舞台演出・ビジュアル担当", skill: "核心のワンフレーズ",
+    effectText: "ひらめき＋3個 ／ 集中力＋15回復",
+    quote: "「……少し角度を変えてみようか。\nほら、こっちから見ると輪郭がはっきりする。\nいい切り口が見つかりそうだね」",
+    apply: (s) => {
+      s.bulbs = Math.min(5, s.bulbs + 3);
+      s.focus = Math.min(s.maxFocus, s.focus + 15);
+    }
+  },
+  {
+    id: "naka", name: "ナカちゃん", role: "女子ラウンジの女友達", skill: "特濃スイーツ差し入れ",
+    effectText: "集中力＋60回復（最大値100を超えて120まで回復可能！）",
+    quote: "「美桜ー！ 甘いもの持ってきたよ（笑）\nちょっと休憩しよ！\n糖分補給したら、また一緒に頑張ろうね」",
+    apply: (s) => {
+      s.maxFocus = 120;
+      s.focus = Math.min(120, s.focus + 60);
+    }
+  },
+  {
+    id: "ritsu", name: "律さん", role: "熟練SE・実装支援", skill: "最適化",
+    effectText: "次の行動をターン消費なしで実行可能に！さらに集中力＋20回復",
+    quote: "「美桜、こっちは整理しておいた。\n今ならもう一手動けるぞ。無理なく進めよう」",
+    apply: (s) => {
+      s.buffRitsu = true;
+      s.focus = Math.min(s.maxFocus, s.focus + 20);
+    }
+  },
+  {
+    id: "kuroko", name: "黒子さん", role: "舞台袖の観測者・感情の照明係", skill: "舞台袖のスポットライト",
+    effectText: "本日の残りターン中、納品するすべての案件報酬が1.3倍になる！",
+    quote: "「美桜、今日の仕事には少しだけ照明を足しておいたよ。\nせっかくの頑張りだ。\nその価値が、ちゃんと伝わらないとな（笑）」",
+    apply: (s) => { s.buffKuroko = true; }
+  }
+];
+
+let state = {};
+let currentAllyChoices = [];
+
+function initGame() {
+  document.getElementById("result-modal").classList.remove("show");
+  state = {
+    turn: 0, money: 0, focus: 100, maxFocus: 100, bulbs: 1, boost: 0,
+    coffeeUsedToday: false, allyUsedToday: false,
+    buffAoi: false, buffTowa: false, buffRitsu: false, buffKuroko: false,
+    jobs: []
+  };
+  generateJobs();
+  setLog("【Mio's Desk システム起動】", "3日後の旅行に向けて目標50,000円！まずは依頼を選ぶか、リサーチで「ひらめき」を貯めて高単価案件を狙おう。");
+  render();
+}
+
+function generateJobs() {
+  const light = JOB_POOL.filter(j => j.tier === "light");
+  const mid = JOB_POOL.filter(j => j.tier === "mid");
+  const high = JOB_POOL.filter(j => j.tier === "high");
+  state.jobs = [
+    { ...light[Math.floor(Math.random() * light.length)] },
+    { ...mid[Math.floor(Math.random() * mid.length)] },
+    { ...high[Math.floor(Math.random() * high.length)] }
+  ];
+}
+
+function getBoostMultiplier(boostCount) {
+  if (state.buffAoi) return 2.2;
+  if (boostCount === 1) return 1.3;
+  if (boostCount === 2) return 1.7;
+  if (boostCount === 3) return 2.2;
+  return 1.0;
+}
+
+function setBoost(n) {
+  if (n > state.bulbs) n = state.bulbs;
+  state.boost = n;
+  render();
+}
+
+function calcJobPreview(job) {
+  let reqFocus = state.buffTowa ? Math.ceil(job.focus / 2) : job.focus;
+  let mult = getBoostMultiplier(state.boost);
+  if (state.buffKuroko) mult *= 1.3;
+  let reward = Math.round((job.base * mult) / 100) * 100;
+  if (state.buffTowa) reward += 2500;
+  return { reqFocus, reward, mult };
+}
+
+function executeJob(idx) {
+  const job = state.jobs[idx];
+  const { reqFocus, reward } = calcJobPreview(job);
+  const effectiveBulbs = state.buffAoi ? 5 : state.bulbs;
+
+  if (state.focus < reqFocus) {
+    setLog("【集中力不足】", "集中力が足りません！コーヒー休憩や仲間のサポートで回復しましょう。");
+    return;
+  }
+  if (effectiveBulbs < job.reqBulb) {
+    setLog("【ひらめき不足】", `この案件には「ひらめき」が最低${job.reqBulb}個必要です。リサーチや休憩でネタを仕入れましょう！`);
+    return;
+  }
+
+  state.focus -= reqFocus;
+  if (!state.buffAoi) state.bulbs -= state.boost;
+  state.money += reward;
+
+  state.buffAoi = false;
+  state.buffTowa = false;
+  state.boost = Math.min(state.boost, state.bulbs);
+
+  setLog("【納品完了！】", `『${job.title}』を仕上げ、${reward.toLocaleString()}円を獲得しました！`);
+  advanceTurn(true);
+}
+
+function doCoffee() {
+  const cost = state.coffeeUsedToday ? 500 : 0;
+  if (state.money < cost) {
+    setLog("【資金不足】", "2杯目以降のコーヒー代（500円）が足りません！");
+    return;
+  }
+  state.money -= cost;
+  state.focus = Math.min(state.maxFocus, state.focus + 40);
+  state.bulbs = Math.min(5, state.bulbs + 1);
+  state.coffeeUsedToday = true;
+
+  const costMsg = cost === 0 ? "（本日1杯目・無料）" : "（コーヒー代 -500円）";
+  setLog("【コーヒーブレイク】", `香り高いコーヒーでリフレッシュ${costMsg}！集中力が40回復し、ひらめき＋1。`);
+  advanceTurn(false);
+}
+
+function doResearch() {
+  if (state.focus < 15) {
+    setLog("【集中力不足】", "リサーチに出かける集中力（15）が残っていません。先に休憩しましょう！");
+    return;
+  }
+  state.focus -= 15;
+  state.bulbs = Math.min(5, state.bulbs + 2);
+  setLog("【リサーチ＆散歩】", "気分転換の散歩と資料調査でアイデアが湧いてきた！ひらめきを＋2獲得。");
+  advanceTurn(false);
+}
+
+function openAllyModal() {
+  if (state.allyUsedToday) return;
+  const shuffled = [...ALLIES].sort(() => Math.random() - 0.5);
+  currentAllyChoices = shuffled.slice(0, 3);
+
+  const container = document.getElementById("ally-choices-container");
+  container.innerHTML = "";
+  currentAllyChoices.forEach((ally, i) => {
+    const div = document.createElement("div");
+    div.className = "ally-choice";
+    div.onclick = () => selectAlly(i);
+    div.innerHTML = `
+      <div class="ally-header">
+        <span class="ally-name">${ally.name}</span>
+        <span class="ally-role">${ally.role}</span>
+      </div>
+      <div class="ally-skill">◆ ${ally.skill}</div>
+      <div class="ally-effect">${ally.effectText}</div>
+    `;
+    container.appendChild(div);
+  });
+
+  document.getElementById("ally-modal").classList.add("show");
+}
+
+function closeAllyModal() {
+  document.getElementById("ally-modal").classList.remove("show");
+}
+
+function selectAlly(idx) {
+  const ally = currentAllyChoices[idx];
+  closeAllyModal();
+  state.allyUsedToday = true;
+  ally.apply(state);
+  setLog(`【サポート発動：${ally.name}（${ally.skill}）】`, ally.quote);
+
+  document.getElementById("cutin-role").textContent = ally.role;
+  document.getElementById("cutin-name").textContent = ally.name;
+  document.getElementById("cutin-quote").textContent = ally.quote;
+  document.getElementById("cutin-effect").textContent = `✨ ${ally.skill}：${ally.effectText}`;
+  document.getElementById("cutin-modal").classList.add("show");
+
+  render();
+}
+
+function closeCutinModal() {
+  document.getElementById("cutin-modal").classList.remove("show");
+}
+
+function advanceTurn(refreshJobs) {
+  if (state.buffRitsu) {
+    state.buffRitsu = false;
+    if (refreshJobs) generateJobs();
+    render();
+    return;
+  }
+
+  state.turn++;
+  if (state.turn >= 9) {
+    render();
+    showEnding();
+    return;
+  }
+
+  if (state.turn % 3 === 0) {
+    state.coffeeUsedToday = false;
+    state.allyUsedToday = false;
+    state.buffKuroko = false;
+    state.maxFocus = 100;
+    state.focus = Math.min(100, state.focus + 35);
+    setLog(`【${DAYS[Math.floor(state.turn / 3)]}の朝】`, "新しい1日が始まりました！睡眠をとって集中力が35回復し、サポート回数もリセットされました。");
+  }
+
+  generateJobs();
+  render();
+}
+
+function setLog(speaker, text) {
+  document.getElementById("log-speaker").textContent = speaker;
+  document.getElementById("log-text").textContent = text;
+}
+
+function showEnding() {
+  const modal = document.getElementById("result-modal");
+  const titleEl = document.getElementById("result-title");
+  const moneyEl = document.getElementById("result-money");
+  const msgEl = document.getElementById("result-msg");
+
+  moneyEl.textContent = `${state.money.toLocaleString()} 円`;
+
+  if (state.money >= 50000) {
+    titleEl.textContent = "🎉 目標達成！いざ、最高の旅行へ出発！";
+    titleEl.style.color = "var(--gold)";
+    let rankMsg = state.money >= 65000
+      ? "目標を大きく上回る大稼ぎ！旅先での豪華グルメやお土産も思いのままです。"
+      : "見事なスケジュール管理とコンボの組み立てで、目標の5万円をバッチリ確保しました！";
+    msgEl.innerHTML = `3日間の編集＆リサーチ作戦、大成功です！<br>${rankMsg}<br><br>準備万端のバッグを手に、美桜は晴れやかな笑顔で旅へと出発しました！`;
+  } else {
+    titleEl.textContent = "💦 3日間終了…あと一歩届かず！";
+    titleEl.style.color = "var(--pink)";
+    const diff = 50000 - state.money;
+    msgEl.innerHTML = `目標の50,000円まで、あと <strong>${diff.toLocaleString()}円</strong> 足りませんでした…！<br><br>💡 <strong>攻略のヒント：</strong><br>リサーチや休憩で「ひらめき」を2〜3個貯めてから、高単価案件や仲間サポート（碧の2.2倍・黒子さんの1.3倍など）を掛け合わせると一気に報酬が跳ね上がります！`;
+  }
+  modal.classList.add("show");
+}
+
+function render() {
+  const dayIdx = Math.min(2, Math.floor(state.turn / 3));
+  const timeIdx = state.turn % 3;
+  const rem = Math.max(0, 9 - state.turn);
+  document.getElementById("turn-display").textContent = `${DAYS[dayIdx]}・${TIMES[timeIdx]} (残り${rem}ターン)`;
+
+  document.getElementById("money-display").textContent = `${state.money.toLocaleString()} 円`;
+  const pct = Math.min(100, (state.money / 50000) * 100);
+  document.getElementById("money-bar").style.width = `${pct}%`;
+
+  document.getElementById("focus-text").textContent = `${state.focus} / ${state.maxFocus}`;
+  const focusBar = document.getElementById("focus-bar");
+  focusBar.style.width = `${Math.min(100, (state.focus / state.maxFocus) * 100)}%`;
+  focusBar.style.backgroundColor = state.focus <= 25 ? "var(--pink)" : "var(--green)";
+
+  document.getElementById("bulb-count-text").textContent = `${state.bulbs} / 5`;
+  const bulbEls = document.querySelectorAll(".bulb");
+  bulbEls.forEach((el, i) => { el.classList.toggle("active", i < state.bulbs); });
+
+  if (state.boost > state.bulbs) state.boost = state.bulbs;
+  const mult = getBoostMultiplier(state.boost);
+  document.getElementById("boost-mult-text").textContent = state.buffAoi
+    ? "碧サポート中 (消費0で ×2.2倍!)"
+    : `${state.boost}個 (×${mult.toFixed(1)}倍)`;
+
+  for (let i = 0; i <= 3; i++) {
+    const btn = document.getElementById(`boost-${i}`);
+    btn.classList.toggle("active", !state.buffAoi && state.boost === i);
+    btn.disabled = state.buffAoi || i > state.bulbs;
+  }
+
+  const buffContainer = document.getElementById("buff-tags");
+  buffContainer.innerHTML = "";
+  if (state.buffAoi) buffContainer.innerHTML += `<span class="buff-tag">🔬 碧：次案件×2.2倍確定</span>`;
+  if (state.buffTowa) buffContainer.innerHTML += `<span class="buff-tag">📘 トワ：集中半減＆+2,500円</span>`;
+  if (state.buffRitsu) buffContainer.innerHTML += `<span class="buff-tag">⚙️ 律：次の行動ターン消費なし</span>`;
+  if (state.buffKuroko) buffContainer.innerHTML += `<span class="buff-tag">🔦 黒子：本日報酬ずっと1.3倍</span>`;
+
+  const jobsList = document.getElementById("jobs-list");
+  jobsList.innerHTML = "";
+  state.jobs.forEach((job, idx) => {
+    const { reqFocus, reward } = calcJobPreview(job);
+    const effectiveBulbs = state.buffAoi ? 5 : state.bulbs;
+    const canDo = state.focus >= reqFocus && effectiveBulbs >= job.reqBulb;
+
+    const card = document.createElement("div");
+    card.className = `job-card ${job.tier === "special" ? "special" : ""} ${canDo ? "" : "disabled"}`;
+    card.onclick = () => executeJob(idx);
+
+    const tagClass = job.tier === "light" ? "tag-light" : job.tier === "mid" ? "tag-mid" : job.tier === "high" ? "tag-high" : "tag-sp";
+    const bulbReqText = job.reqBulb > 0 ? ` ／ 必要💡${job.reqBulb}個〜` : "";
+
+    card.innerHTML = `
+      <div class="job-main">
+        <span class="job-tag ${tagClass}">${job.tag}</span>
+        <div class="job-title">${job.title}</div>
+        <div class="job-req">消費集中力: ${reqFocus}${bulbReqText}</div>
+      </div>
+      <div class="job-reward-box">
+        <div class="job-reward">+${reward.toLocaleString()}円</div>
+        <div class="job-base">(基本 ${job.base.toLocaleString()}円)</div>
+      </div>
+    `;
+    jobsList.appendChild(card);
+  });
+
+  document.getElementById("coffee-desc").innerHTML = state.coffeeUsedToday
+    ? "集中+40 / 💡+1<br>(出費 500円)"
+    : "集中+40 / 💡+1<br>(本日1回目無料)";
+
+  const allyBtn = document.getElementById("btn-ally");
+  allyBtn.disabled = state.allyUsedToday;
+  document.getElementById("ally-desc").innerHTML = state.allyUsedToday
+    ? "本日使用済み<br>(翌朝リセット)"
+    : "3名から選択<br>(本日あと1回)";
+}
+
+window.addEventListener("DOMContentLoaded", initGame);
+</script>
+</body>
+</html>
